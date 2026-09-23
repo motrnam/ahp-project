@@ -33,28 +33,13 @@ ALLOWED_HOSTS = [
     "localhost",
 ]
 
-# Base origins
-LOCAL_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.app",
+    "https://*.trycloudflare.com",
+    "https://*.loca.lt",
+    "https://*.serveo.net",
+    "https://*.runflare.com"
 ]
-
-# Regex for *.runflare.cloud
-RUNFLARE_ORIGIN_REGEX = re.compile(r"^https://[\w-]+\.runflare\.cloud$")
-
-CSRF_TRUSTED_ORIGINS = LOCAL_ORIGINS + [
-    "https://runflare.cloud",
-]
-
-# For django-cors-headers
-CORS_ALLOWED_ORIGINS = LOCAL_ORIGINS + [
-    "https://runflare.cloud",
-]
-
-# Regex-based matching for wildcard subdomains
-CSRF_TRUSTED_ORIGINS_REGEX = [RUNFLARE_ORIGIN_REGEX]
-CORS_ALLOWED_ORIGIN_REGEXES = [RUNFLARE_ORIGIN_REGEX]
-# Application definition
 
 INSTALLED_APPS = [
     "django.contrib.admin",
