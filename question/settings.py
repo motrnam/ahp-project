@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import re
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,25 +26,34 @@ SECRET_KEY = "django-insecure-ad=54_on4_hg44ere1ucrr9d+le!qmu+feib%au&)7e9=7z!x*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+
 ALLOWED_HOSTS = [
-    "django-xbj-ahp-question1.runflare.cloud",
+    ".runflare.cloud",
     "127.0.0.1",
     "localhost",
 ]
 
-CSRF_TRUSTED_ORIGINS = [
+# Base origins
+LOCAL_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-    "https://django-xbj-ahp-question1.runflare.cloud",
 ]
 
-# For django-cors-headers >= 3.5
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "https://django-xbj-ahp-question1.runflare.cloud",
+# Regex for *.runflare.cloud
+RUNFLARE_ORIGIN_REGEX = re.compile(r"^https://[\w-]+\.runflare\.cloud$")
+
+CSRF_TRUSTED_ORIGINS = LOCAL_ORIGINS + [
+    "https://runflare.cloud",
 ]
 
+# For django-cors-headers
+CORS_ALLOWED_ORIGINS = LOCAL_ORIGINS + [
+    "https://runflare.cloud",
+]
+
+# Regex-based matching for wildcard subdomains
+CSRF_TRUSTED_ORIGINS_REGEX = [RUNFLARE_ORIGIN_REGEX]
+CORS_ALLOWED_ORIGIN_REGEXES = [RUNFLARE_ORIGIN_REGEX]
 # Application definition
 
 INSTALLED_APPS = [
