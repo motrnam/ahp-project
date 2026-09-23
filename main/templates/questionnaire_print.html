@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>{{ questionnaire.goal }}</h1>
+
+  {% for group in groups %}
+    <section class="ahp-group">
+      <h3>سطح {{ group.level }}</h3>
+      <table class="ahp-matrix">
+        <thead>
+          <tr>
+            <th></th>
+            {% for item in group.items %}<th>{{ item.name }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in group.items %}
+            <tr>
+              <th>{{ row.name }}</th>
+              {% for col in group.items %}
+                {% if forloop.counter0 == forloop.parentloop.counter0 %}
+                  <td class="diag">1</td>
+                {% elif forloop.counter0 > forloop.parentloop.counter0 %}
+                  <td class="blank"></td>
+                {% else %}
+                  <td class="recip"></td>
+                {% endif %}
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% endfor %}
+
+  <style>
+    @media print {
+      .no-print { display: none; }
+      .ahp-matrix { page-break-inside: avoid; }
+      .ahp-group { page-break-inside: avoid; }
+      body { font-size: 12px; }
+    }
+  </style>
+
+  <script>
+    window.onload = () => window.print();
+  </script>
+{% endblock %}

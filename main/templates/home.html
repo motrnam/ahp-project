@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Home | My App
+{% endblock %}
+
+{% block content %}
+  <h1>Welcome to Our Platform</h1>
+
+  {% if user.is_authenticated %}
+    <!-- View for Logged-in User -->
+    <div class="user-dashboard">
+      <h2>Hello, {{ user.username }}!</h2>
+      <p>Welcome back. Here are your quick actions:</p>
+      <ul>
+        <li>
+          <a href="{% url 'create-ahp' %}">Create a new poll</a>
+        </li>
+        <li>
+          <a href="{% url 'questionnaire_list' %}">View polls</a>
+        </li>
+        <li>
+          <a href="{% url 'my_questionnaire_list' %}">My polls</a>
+        </li>
+      </ul>
+    </div>
+  {% else %}
+    <!-- View for Not Logged-in User (Guest) -->
+    <div class="guest-hero">
+      <p>Join us today to start creating amazing content.</p>
+      <a href="{% url 'signup' %}" style="padding: 10px; background: blue; color: white; text-decoration: none;">Sign Up Now</a>
+      <p>
+        Already have an account? <a href="{% url 'login' %}">Login here</a>.
+      </p>
+    </div>
+  {% endif %}
+{% endblock %}

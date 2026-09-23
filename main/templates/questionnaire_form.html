@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {{ questionnaire.goal|default:'پرسشنامه' }}
+{% endblock %}
+
+{% block content %}
+  <h1>{{ questionnaire.goal|default:'بدون عنوان' }}</h1>
+  <p class="subtitle">لطفاً اهمیت نسبی هر جفت معیار و گزینه را مشخص کنید.</p>
+  {% load ahp_extras %}
+
+  <form method="post" action="{% url 'handle' questionnaire.pk %}" id="ahp-form">
+    {% csrf_token %}
+
+    <p class="hint">
+      هر سطر یک <strong>مقایسهٔ زوجی</strong> است: «گزینهٔ اول» (سمت راست) در برابر «گزینهٔ دوم» (سمت چپ).<br />
+      اگر گزینهٔ اول مهم‌تر است عددی <strong>بزرگ‌تر از ۱</strong> و اگر گزینهٔ دوم مهم‌تر است عددی
+      <strong>کوچک‌تر از ۱</strong> انتخاب کنید. عدد <strong>۱</strong> یعنی اهمیت برابر.
+    </p>
+
+    {# ---------------- ۱. معیارها ---------------- #}
+    <h2 class="section-title">۱. مقایسه زوجی معیارها</h2>
+
+    {% for group in groups %}
+      {% with g_index=forloop.counter0 %}
+        <section class="ahp-group">
+          <header class="group-header">
+            <h3>سطح {{ group.level }}</h3>
+            <p class="group-path">
+              {% if group.parent_name %}
+                مقایسه زیرمعیارهای «{{ group.parent_name }}»
+              {% else %}
+                مقایسه معیارهای اصلی نسبت به هدف
+              {% endif %}
+            </p>
+          </header>
+
+          <div class="pair-list">
+            {% for row in group.items %}
+              {% with r_index=forloop.counter0 %}
+              
+                {% for col in group.items %}
+                  {% if forloop.counter0 > r_index %}
+                    {% with c_index=forloop.counter0 %}
+                      <div class="pair">
+                        <span class="pair-side pair-side--first">{{ row.name }}</span>
+                        {% make_key_plus "criteria" row.index2 col.index2 as key %}
+                          {% with current=answers|get_item:key %}
+                            <select class="pair-select"
+                                    name="criteria___{{ row.index2 }}___{{ col.index2 }}">
+                              <option value=""    {% if not current %}selected{% endif %}>—</option>
+                              <option value="9"   {% if current == "9"   %}selected{% endif %}>9</option>
+                              <option value="7"   {% if current == "7"   %}selected{% endif %}>7</option>
+                              <option value="5"   {% if current == "5"   %}selected{% endif %}>5</option>
+                              <option value="3"   {% if current == "3"   %}selected{% endif %}>3</option>
+                              <option value="1"   {% if current == "1"   %}selected{% endif %}>1</option>
+                              <option value="1/3" {% if current == "1/3" %}selected{% endif %}>1/3</option>
+                              <option value="1/5" {% if current == "1/5" %}selected{% endif %}>1/5</option>
+                              <option value="1/7" {% if current == "1/7" %}selected{% endif %}>1/7</option>
+                              <option value="1/9" {% if current == "1/9" %}selected{% endif %}>1/9</option>
+                            </select>
+                          {% endwith %}
+
+                        <span class="pair-side pair-side--second">{{ col.name }}</span>
+                      </div>
+                    {% endwith %}
+                  {% endif %}
+                {% endfor %}
+              {% endwith %}
+            {% endfor %}
+          </div>
+        </section>
+      {% endwith %}
+    {% empty %}
+      <p>هیچ گروه مقایسه معیاری یافت نشد.</p>
+    {% endfor %}
+
+    {# ---------------- ۲. گزینهها ---------------- #}
+        {% if has_alternatives and alternatives_show %}
+  <h2 class="section-title">۲. مقایسه زوجی گزینه‌ها بر اساس معیارها</h2>
+
+  {% for node in alternatives_show %}
+    {% with c_group_index=forloop.counter0 %}
+      <section class="ahp-group">
+        <header class="group-header">
+          <h3>مقایسه گزینه‌ها نسبت به معیار: «{{ node.name }}»</h3>
+          <p class="group-path">
+            سطح {{ node.level }} — میزان برتری گزینه‌ها را بر اساس این معیار ارزیابی کنید.
+          </p>
+        </header>
+
+        <div class="pair-list">
+          {% for pair in node.alternatives %}
+            {% with first=pair.0 second=pair.1 %}
+              <div class="pair">
+                <span class="pair-side pair-side--first">
+                  {{ first.name.items.0.name }}
+                </span>
+
+                {% make_key "alternatives" first.index second.index c_group_index as alt_key %}
+                {% with current=answers|get_item:alt_key %}
+                  <select class="pair-select"
+                          name="alternatives___{{ first.index }}___{{ second.index }}___{{ c_group_index }}">
+                    <option value=""    {% if not current %}selected{% endif %}>—</option>
+                    <option value="9"   {% if current == "9"   %}selected{% endif %}>9</option>
+                    <option value="7"   {% if current == "7"   %}selected{% endif %}>7</option>
+                    <option value="5"   {% if current == "5"   %}selected{% endif %}>5</option>
+                    <option value="3"   {% if current == "3"   %}selected{% endif %}>3</option>
+                    <option value="1"   {% if current == "1"   %}selected{% endif %}>1</option>
+                    <option value="1/3" {% if current == "1/3" %}selected{% endif %}>1/3</option>
+                    <option value="1/5" {% if current == "1/5" %}selected{% endif %}>1/5</option>
+                    <option value="1/7" {% if current == "1/7" %}selected{% endif %}>1/7</option>
+                    <option value="1/9" {% if current == "1/9" %}selected{% endif %}>1/9</option>
+                  </select>
+                {% endwith %}
+
+                <span class="pair-side pair-side--second">
+                  {{ second.name.items.1.name }}
+                </span>
+              </div>
+            {% endwith %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endwith %}
+  {% endfor %}
+{% endif %}
+
+    <div class="actions">
+      <button type="submit" class="btn-create" name="action" value="submit">ثبت پاسخ‌ها</button>
+
+      {% if user.is_authenticated %}
+        <button type="submit"
+                id="save-draft-btn"
+                class="btn-create btn-secondary"
+                name="action"
+                value="save_draft">ذخیره پیش‌نویس</button>
+        <span id="draft-status" class="draft-status"></span>
+      {% endif %}
+
+      <a href="{% url 'print_questionnaire' questionnaire.pk %}" target="_blank" class="btn-create">چاپ</a>
+    </div>
+  </form>
+
+  {# fallback برای حالت بدون جاوااسکریپت #}
+  <iframe name="frame" title="hidden"></iframe>
+
+  <style>
+    iframe[name="frame"] { display: none; }
+
+    .section-title {
+      font-size: 1.3rem;
+      margin: 1.5rem 0 1rem;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 0.4rem;
+    }
+    .hint {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.85rem;
+      color: #4b5563;
+      line-height: 1.9;
+    }
+    .ahp-group { margin-bottom: 2rem; }
+    .group-header h3 { margin: 0 0 0.25rem 0; font-size: 1.05rem; }
+    .group-path { color: #6b7280; font-size: 0.85rem; margin: 0 0 0.75rem 0; }
+
+    /* ---- هر مقایسه زوجی یک سطر مستقل ---- */
+    .pair-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .pair {
+      display: grid;
+      grid-template-columns: 1fr 9rem 1fr;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.45rem 0.75rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      background: #fff;
+      transition: background 0.15s;
+    }
+    .pair:hover { background: #f9fafb; }
+    .pair-side { font-size: 0.875rem; }
+    .pair-side--first { text-align: right; font-weight: 600; color: #111827; }
+    .pair-side--second { text-align: left; font-weight: 600; color: #111827; }
+    .pair-select {
+      width: 100%;
+      padding: 0.3rem;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      background: #fff;
+      font-size: 0.875rem;
+      direction: ltr;
+      text-align: center;
+    }
+    .pair-select:focus { outline: 2px solid #93c5fd; border-color: #2563eb; }
+
+    .actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; }
+    .btn-create {
+      padding: 0.6rem 1.5rem;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-create:hover { background-color: #1d4ed8; }
+    .btn-secondary { background: #6b7280; }
+    .btn-secondary:hover { background: #4b5563; }
+    .draft-status { font-size: 0.8rem; color: #6b7280; }
+  </style>
+
+  <script>
+    
+  </script>
+{% endblock %}
