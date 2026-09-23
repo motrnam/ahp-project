@@ -38,7 +38,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.trycloudflare.com",
     "https://*.loca.lt",
     "https://*.serveo.net",
-    "https://*.runflare.com"
+    "https://*.runflare.cloud"
 ]
 
 INSTALLED_APPS = [
