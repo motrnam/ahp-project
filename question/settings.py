@@ -25,13 +25,22 @@ SECRET_KEY = "django-insecure-ad=54_on4_hg44ere1ucrr9d+le!qmu+feib%au&)7e9=7z!x*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["django-xbj-ahp-question1.runflare.cloud", "127.0.0.1"]
-CSRF_TRUSTED_ORIGINS = (
-    ["http://localhost:8000"],
-    ["https://django-xbj-ahp-question1.runflare.cloud"],
-)
-CORS_ORIGIN_WHITELIST = [
+ALLOWED_HOSTS = [
+    "django-xbj-ahp-question1.runflare.cloud",
+    "127.0.0.1",
+    "localhost",
+]
+
+CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://django-xbj-ahp-question1.runflare.cloud",
+]
+
+# For django-cors-headers >= 3.5
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
     "https://django-xbj-ahp-question1.runflare.cloud",
 ]
 
