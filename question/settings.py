@@ -28,16 +28,10 @@ DEBUG = True
 
 
 ALLOWED_HOSTS = [
-    ".runflare.cloud",
-    "127.0.0.1",
-    "localhost",
+    "*"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.ngrok-free.app",
-    "https://*.trycloudflare.com",
-    "https://*.loca.lt",
-    "https://*.serveo.net",
     "https://*.runflare.cloud"
 ]
 
