@@ -25,8 +25,15 @@ SECRET_KEY = "django-insecure-ad=54_on4_hg44ere1ucrr9d+le!qmu+feib%au&)7e9=7z!x*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["django-xbj-ahp-question1.runflare.cloud"]
-
+ALLOWED_HOSTS = ["django-xbj-ahp-question1.runflare.cloud", "127.0.0.1"]
+CSRF_TRUSTED_ORIGINS = (
+    ["http://localhost:8000"],
+    ["https://django-xbj-ahp-question1.runflare.cloud"],
+)
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:8000",
+    "https://django-xbj-ahp-question1.runflare.cloud",
+]
 
 # Application definition
 
@@ -127,6 +134,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Posted by J.Jai, modified by community. See post 'Timeline' for change history
 # Retrieved 2026-09-17, License - CC BY-SA 4.0
 
-X_FRAME_OPTIONS = 'SAMEORIGIN'
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
-XS_SHARING_ALLOWED_METHODS = ['POST','GET','OPTIONS', 'PUT', 'DELETE']
+XS_SHARING_ALLOWED_METHODS = ["POST", "GET", "OPTIONS", "PUT", "DELETE"]
