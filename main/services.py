@@ -7,8 +7,10 @@ THRESHOLD = 0.1
 
 
 def parse_ahp_value(val_str):
+    if isinstance(val_str, str) and val_str == "":
+        return 1
     if isinstance(val_str, (int, float)):
-        return val_str 
+        return val_str
     if not val_str or val_str.strip() in ("", "—"):
         return None
     try:
@@ -23,6 +25,7 @@ def geometric_mean(values):
     if not values:
         return None
     return prod(values) ** (1 / len(values))
+
 
 def extract_ahpy_model(post_data, questionnaire):
     alternatives = questionnaire.questions.get("alternatives", [])
@@ -57,7 +60,7 @@ def extract_ahpy_model(post_data, questionnaire):
                         val = parse_ahp_value(val_raw)
                         alt_dict[(alternatives[i], alternatives[j])] = val
                         node_model.alternatives = alt_dict
-                        node_model._compute_alternative_weights()
+                        # node_model._compute_alternative_weights() # to be fixed later
             if len(children) >= 2:
                 child_model = walk(children, n.get("name"))
                 node_model.add_child(child_model)
@@ -137,35 +140,6 @@ def build_comparison_groups(tree):
     return groups
 
 
-def build_alternatives_groups(leaf_criteria_or_groups, alternatives: list):
-    result = []
-    if len(alternatives) < 2:
-        return result
-
-    alt_items = []
-    for i, alt in enumerate(alternatives):
-        if isinstance(alt, dict):
-            alt_items.append(
-                {"name": alt.get("name", ""), "index": alt.get("index", i)}
-            )
-        else:
-            alt_items.append({"name": str(alt), "index": i})
-
-    for crit_idx, group in enumerate(leaf_criteria_or_groups):
-        criterion_title = (
-            group.get("parent_name") or group.get("path") or f"معیار {crit_idx + 1}"
-        )
-        result.append(
-            {
-                "criterion_name": criterion_title,
-                "criterion_index": crit_idx,
-                "items": alt_items,
-            }
-        )
-
-    return result
-
-
 def build_alternatives_groups2(tree, alternatives: list):
     result = []
 
@@ -178,7 +152,8 @@ def build_alternatives_groups2(tree, alternatives: list):
     def walk(node, parent_name, path, level):
         children = node.get("children") or []
         name = node.get("name") or "fuck"
-        result.append({"name": name, "level": level, "alternatives": comb_of_2})
+        if len(children) == 0:  # only leaves
+            result.append({"name": name, "level": level, "alternatives": comb_of_2})
 
         for child in children:
             child_path = f"{path} > {child['name']}" if path else child["name"]

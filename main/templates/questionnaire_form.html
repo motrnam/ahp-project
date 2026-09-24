@@ -94,7 +94,7 @@
             {% with first=pair.0 second=pair.1 %}
               <div class="pair">
                 <span class="pair-side pair-side--first">
-                  {{ first.name.items.0.name }}
+                  {{ first.name }}
                 </span>
 
                 {% make_key "alternatives" first.index second.index c_group_index as alt_key %}
@@ -115,7 +115,7 @@
                 {% endwith %}
 
                 <span class="pair-side pair-side--second">
-                  {{ second.name.items.1.name }}
+                  {{ second.name }}
                 </span>
               </div>
             {% endwith %}
@@ -215,6 +215,132 @@
   </style>
 
   <script>
-    
-  </script>
+(function () {
+  const form = document.getElementById('ahp-form');
+  if (!form) return;
+
+  const formActionUrl = "{% url 'handle' questionnaire.pk %}";
+
+  const draftBtn = document.getElementById('save-draft-btn');
+  const draftStatus = document.getElementById('draft-status');
+
+  // Detect which button triggered the submit, so we know the "action" value.
+  let submitterAction = null;
+
+  // Track the clicked button (submit / save_draft).
+  form.addEventListener('click', function (e) {
+    const btn = e.target.closest('button[type="submit"]');
+    if (btn && btn.name === 'action') {
+      submitterAction = btn.value;
+    }
+  });
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    // Fallback: if click tracking failed, use the button that has focus.
+    let action = submitterAction
+      || (document.activeElement && document.activeElement.value)
+      || 'submit';
+
+    // Reset the flag so a later submit doesn't reuse a stale action.
+    submitterAction = null;
+
+    const formData = new FormData(form);
+    // Make sure the correct action is sent even if the button value
+    // was not included by the browser.
+    formData.set('action', action);
+
+    if (action === 'save_draft' && draftStatus) {
+      draftStatus.textContent = 'در حال ذخیره...';
+    }
+
+    try {
+      console.log(formActionUrl);
+      const response = await fetch(formActionUrl, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+      });
+
+      // ---- Draft saving ----
+      if (action === 'save_draft') {
+        if (response.ok) {
+          if (draftStatus) draftStatus.textContent = 'پیش‌نویس ذخیره شد.';
+        } else if (response.status === 403) {
+          if (draftStatus) draftStatus.textContent = 'برای ذخیره پیش‌نویس باید وارد شوید.';
+        } else {
+          if (draftStatus) draftStatus.textContent = 'خطا در ذخیره پیش‌نویس.';
+        }
+        return; // stay on the page
+      }
+
+      // ---- Submit ----
+      // The view may respond in different ways:
+      //   * JSON {status: "ok"|"error", redirect: "..."}  (recommended)
+      //   * plain text "index" / "..."                    (your current reverse())
+      //   * HTML (re-render / redirect followed)
+      const contentType = response.headers.get('content-type') || '';
+      let data = null;
+
+      if (contentType.includes('application/json')) {
+        data = await response.json();
+      }
+
+      if (data) {
+        if (data.status === 'ok') {
+          window.location.href = data.redirect || '/';
+        } else {
+          // Error (e.g. inconsistent nodes) -> stay on page.
+          // Optionally show the message.
+          if (data.message) {
+            alert(data.message); // or render it into a div
+          }
+        }
+        return;
+      }
+
+      // Fallback for non-JSON responses.
+      const text = await response.text();
+
+      if (response.redirected) {
+        // Server issued a redirect (e.g. inconsistency -> questionnaire_detail).
+        // If it redirected back to the same page, stay; otherwise follow.
+        if (response.url !== window.location.href) {
+          window.location.href = response.url;
+        }
+        return;
+      }
+
+      if (response.ok) {
+        // Your view returns reverse("index") as a plain string on success.
+        // Treat a known "index"-like response as success and go home.
+        if (text.trim() === 'index' || text.trim() === '/') {
+          window.location.href = '/';
+        } else if (text.trim().length && text.trim().length < 200) {
+          // Likely a URL/name; navigate there.
+          window.location.href = text.trim();
+        } else {
+          // HTML error page (inconsistency) -> replace current document
+          // so the user sees the message and stays on the page.
+          document.open();
+          document.write(text);
+          document.close();
+        }
+      } else {
+        // Server error -> stay on page, optionally show text.
+        document.open();
+        document.write(text);
+        document.close();
+      }
+    } catch (err) {
+      if (draftStatus) draftStatus.textContent = 'خطای شبکه.';
+      console.error(err);
+    }
+  });
+})();
+</script>
 {% endblock %}

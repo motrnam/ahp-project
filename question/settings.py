@@ -27,13 +27,9 @@ SECRET_KEY = "django-insecure-ad=54_on4_hg44ere1ucrr9d+le!qmu+feib%au&)7e9=7z!x*
 DEBUG = True
 
 
-ALLOWED_HOSTS = [
-    "*"
-]
+ALLOWED_HOSTS = ["*"]
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://*.runflare.cloud"
-]
+CSRF_TRUSTED_ORIGINS = ["https://*.runflare.cloud"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -43,6 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "main",
+    "questionare_management",
+    "profiles",
 ]
 
 MIDDLEWARE = [
