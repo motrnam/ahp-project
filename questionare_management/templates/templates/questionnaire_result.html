@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Result — {{ questionnaire.title }}{% endblock %}
+
+{% block content %}
+<style>
+    .result-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+    .result-header h1 { margin: 0; font-size: 1.5rem; }
+    .result-meta { color: #6b7280; font-size: 0.9rem; }
+
+    .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        background: #fff;
+    }
+    .card h2 {
+        margin: 0 0 1rem;
+        font-size: 1.15rem;
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 0.5rem;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+    }
+    th, td {
+        text-align: left;
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    th {
+        background: #f9fafb;
+        font-weight: 600;
+        color: #374151;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    .rank-1 { font-weight: 700; color: #047857; }
+    .rank-badge {
+        display: inline-block;
+        min-width: 1.75rem;
+        text-align: center;
+        padding: 0.1rem 0.4rem;
+        border-radius: 999px;
+        background: #f3f4f6;
+        color: #4b5563;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .rank-badge.gold   { background: #fef3c7; color: #92400e; }
+    .rank-badge.silver { background: #e5e7eb; color: #374151; }
+    .rank-badge.bronze { background: #fde68a; color: #78350f; }
+
+    .weight-bar {
+        position: relative;
+        height: 8px;
+        border-radius: 4px;
+        background: #f3f4f6;
+        overflow: hidden;
+        margin-top: 0.3rem;
+    }
+    .weight-bar > span {
+        display: block;
+        height: 100%;
+        background: linear-gradient(90deg, #3b82f6, #2563eb);
+        border-radius: 4px;
+    }
+
+    .warning {
+        background: #fffbeb;
+        border: 1px solid #fcd34d;
+        color: #78350f;
+        padding: 0.85rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+    .warning strong { display: block; margin-bottom: 0.25rem; }
+    .warning ul { margin: 0.25rem 0 0 1.2rem; padding: 0; }
+
+    .empty {
+        text-align: center;
+        color: #6b7280;
+        padding: 2rem 1rem;
+    }
+</style>
+
+<div class="result-header">
+    <h1>{{ questionnaire.title }} — Result</h1>
+    <div class="result-meta">
+        Aggregated from <strong>{{ num_answers }}</strong> answer{{ num_answers|pluralize }}
+    </div>
+</div>
+
+{% if inconsistent_nodes %}
+    <div class="warning">
+        <strong>⚠️ Some comparisons are inconsistent (CR &gt; 0.10)</strong>
+        <ul>
+            {% for node in inconsistent_nodes %}
+                <li>
+                    <code>{{ node.name }}</code>
+                    (CR = {{ node.consistency_ratio|floatformat:3 }})
+                </li>
+            {% endfor %}
+        </ul>
+        Results may be unreliable. Consider asking respondents to revise
+        the highlighted comparisons.
+    </div>
+{% endif %}
+
+{# ---------- Final ranking of alternatives ---------- #}
+<div class="card">
+    <h2>Final ranking of alternatives</h2>
+    {% if ranked_alternatives %}
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 3rem;">#</th>
+                    <th>Alternative</th>
+                    <th style="width: 7rem;">Score</th>
+                    <th style="width: 40%;">Relative</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alt, score in ranked_alternatives.items %}
+                    <tr>
+                        <td>
+                            <span class="rank-badge
+                                {% if forloop.counter == 1 %}gold
+                                {% elif forloop.counter == 2 %}silver
+                                {% elif forloop.counter == 3 %}bronze{% endif %}">
+                                {{ forloop.counter }}
+                            </span>
+                        </td>
+                        <td class="{% if forloop.counter == 1 %}rank-1{% endif %}">
+                            {{ alt }}
+                        </td>
+                        <td>{{ score|floatformat:4 }}</td>
+                        <td>
+                            <div class="weight-bar">
+                                <span style="width: {% widthratio score max_score 100 %}%"></span>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty">No alternative scores could be computed.</p>
+    {% endif %}
+</div>
+
+{# ---------- Criteria weights (global) ---------- #}
+<div class="card">
+    <h2>Global criteria weights</h2>
+    {% if criteria_weights %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Criterion</th>
+                    <th style="width: 7rem;">Weight</th>
+                    <th style="width: 40%;">Relative</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for name, w in criteria_weights.items %}
+                    <tr>
+                        <td>{{ name }}</td>
+                        <td>{{ w|floatformat:4 }}</td>
+                        <td>
+                            <div class="weight-bar">
+                                <span style="width: {% widthratio w 1 100 %}%"></span>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty">No criteria weights available.</p>
+    {% endif %}
+</div>
+
+{# ---------- Hierarchical breakdown ---------- #}
+<div class="card">
+    <h2>Hierarchical breakdown</h2>
+    {% include "partials/ahp_tree.html" with node=root parent_weight=1 %}
+</div>
+
+<p>
+    <a href="{% url 'my_questionnaire_list' %}">← Back to my questionnaires</a>
+</p>
+{% endblock %}

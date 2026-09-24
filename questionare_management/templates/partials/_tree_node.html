@@ -1,0 +1,10 @@
+<li>
+    <span class="node-badge">📁 {{ node.name }}</span>
+    {% if node.children %}
+        <ul class="tree-children">
+            {% for child in node.children %}
+                {% include "partials/_tree_node.html" with node=child %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+</li>

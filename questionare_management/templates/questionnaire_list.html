@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}انتخاب پرسشنامه AHP{% endblock %}
+
+{% block content %}
+<div class="list-container">
+    <header class="list-header">
+        <div>
+            <h1>پرسشنامه‌های AHP</h1>
+            <p class="subtitle">برای شروع ارزیابی و پاسخ‌دهی، یکی از پرسشنامه‌های زیر را انتخاب کنید.</p>
+        </div>
+        {% if user.is_authenticated %}
+            <a href="{% url 'create-ahp' %}" class="btn-create">+ پرسشنامه جدید</a>
+        {% endif %}
+    </header>
+
+    {% if questionnaires %}
+        <div class="grid-cards">
+            {% for q in questionnaires %}
+                <article class="questionnaire-card">
+                    <div class="card-header">
+                        <h2 class="card-title">{{ q.goal|default:"بدون عنوان" }}</h2>
+                        <span class="badge badge-{{ q.status|lower }}">
+                            {{ q.get_status_display }}
+                        </span>
+                    </div>
+
+                    <div class="card-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">سطوح/معیارهای اصلی:</span>
+                            <span class="meta-val">{{ q.questions|length }} مورد</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">دسترسی پاسخ‌دهی:</span>
+                            <span class="meta-val">
+                                {% if q.answer_by == "EVERYBODY" %}عمومی (همگان){% else %}فقط کاربران وارد شده{% endif %}
+                            </span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">تاریخ ایجاد:</span>
+                            <span class="meta-val">{{ q.created_at|date:"Y/m/d H:i" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="card-actions">
+                        {# لینک به صفحه پر کردن پرسشنامه بر اساس ID #}
+                        <a href="{% url 'questionnaire_detail' q.pk %}" class="btn-select">
+                            انتخاب و پاسخ‌دهی &rarr;
+                        </a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>در حال حاضر هیچ پرسشنامه‌ای برای نمایش وجود ندارد.</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'create' %}" class="btn-create">ایجاد اولین پرسشنامه</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .list-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 1rem;
+    }
+
+    .list-header h1 {
+        margin: 0;
+        font-size: 1.6rem;
+    }
+
+    .subtitle {
+        margin: 0.25rem 0 0 0;
+        color: #6b7280;
+        font-size: 0.95rem;
+    }
+
+    .btn-create {
+        background-color: var(--nav-accent);
+        color: #ffffff;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius);
+        font-weight: 500;
+        transition: opacity 0.15s ease;
+    }
+
+    .btn-create:hover {
+        opacity: 0.9;
+    }
+
+    .grid-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .questionnaire-card {
+        border: 1px solid #e5e7eb;
+        border-radius: var(--radius);
+        background: #ffffff;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+
+    .questionnaire-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border-color: #cbd5e1;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .card-title {
+        font-size: 1.15rem;
+        margin: 0;
+        color: var(--text);
+        word-break: break-word;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 0.6rem;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .badge-draft { background: #f3f4f6; color: #4b5563; }
+    .badge-in_progress { background: #fef3c7; color: #92400e; }
+    .badge-finished { background: #dcfce7; color: #15803d; }
+    .badge-stopped { background: #fee2e2; color: #b91c1c; }
+
+    .card-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        font-size: 0.875rem;
+        color: #4b5563;
+        margin-bottom: 1.5rem;
+    }
+
+    .meta-item {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .meta-label {
+        color: #6b7280;
+    }
+
+    .meta-val {
+        font-weight: 500;
+    }
+
+    .card-actions {
+        margin-top: auto;
+    }
+
+    .btn-select {
+        display: block;
+        text-align: center;
+        background: #f3f4f6;
+        color: #1f2937;
+        text-decoration: none;
+        padding: 0.55rem;
+        border-radius: var(--radius);
+        font-weight: 500;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .btn-select:hover {
+        background: var(--nav-accent);
+        color: #ffffff;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6b7280;
+    }
+
+    .empty-state p {
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Create AHP Questionnaire
+{% endblock %}
+
+{% block content %}
+  <div class="ahp-container">
+    <div class="ahp-header">
+      <h2>Analytic Hierarchy Process (AHP) Hierarchy Design</h2>
+      <p class="subtitle">Define your goal, main criteria, sub-criteria, and alternatives.</p>
+    </div>
+
+    <form method="post" id="ahpForm">
+      {% csrf_token %}
+      <input type="hidden" name="step" value="setup" />
+      <!-- Serialized JSON of the entire nested tree -->
+      <input type="hidden" name="criteria_tree" id="criteriaTreeInput" />
+      <!-- Serialized JSON array of alternatives (list[str]) -->
+      <input type="hidden" name="alternatives" id="alternativesInput" />
+
+      <div class="form-group goal-group">
+        <label for="ahpGoal"><strong>Overall Goal / Objective:</strong></label>
+        <input type="text" id="ahpGoal" name="goal" placeholder="e.g., Select the Best Cloud Provider" required />
+      </div>
+
+      <div class="tree-section">
+        <div class="tree-header">
+          <h3>Criteria Hierarchy</h3>
+          <button type="button" class="btn btn-secondary" onclick="addNode()">+ Add Root Criterion</button>
+        </div>
+
+        <!-- Dynamic Hierarchy Container -->
+        <ul id="criteriaRoot" class="criteria-tree"></ul>
+      </div>
+
+      <!-- ================= Alternatives ================= -->
+      <div class="tree-section">
+        <div class="tree-header">
+          <h3>Alternatives</h3>
+          <button type="button" class="btn btn-secondary" onclick="addAlternative()">+ Add Alternative</button>
+        </div>
+        <ul id="alternativesRoot" class="alternatives-list"></ul>
+        <p class="subtitle" style="margin-top:0.5rem;">Options to be compared (e.g., AWS, Azure, GCP).</p>
+      </div>
+      <!-- ================================================ -->
+
+      <div class="form-group">
+        <label for="answerBy"><strong>Who can answer?</strong></label>
+        <select name="answer_by" id="answerBy" class="form-control" style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #d1d5db; margin-top: 0.5rem;">
+          <option value="EVERYBODY">Everybody (Public)</option>
+          <option value="LOGIN">Only Logged-in Users</option>
+        </select>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" name="action" value="draft" class="btn btn-outline">Save as Draft</button>
+        <button type="submit" name="action" value="publish" class="btn btn-primary">Publish Questionnaire</button>
+      </div>
+    </form>
+  </div>
+
+  <style>
+    .ahp-container {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: #ffffff;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      font-family: inherit;
+    }
+    
+    .ahp-header {
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 1rem;
+    }
+    
+    .subtitle {
+      color: #6b7280;
+      font-size: 0.95rem;
+      margin-top: 0.25rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .goal-group input[type='text'] {
+      margin-top: 0.5rem;
+      font-size: 1rem;
+    }
+    
+    input[type='text'] {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    
+    input[type='text']:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    
+    /* Hierarchy Tree Styles */
+    .criteria-tree {
+      list-style-type: none;
+      padding-left: 0;
+      margin: 1rem 0;
+    }
+    
+    .criteria-tree ul {
+      list-style-type: none;
+      padding-left: 1.75rem;
+      margin-top: 0.5rem;
+      border-left: 2px dashed #cbd5e1;
+    }
+    
+    .node-item {
+      margin-bottom: 0.75rem;
+      position: relative;
+    }
+    
+    .node-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #f8fafc;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    
+    .node-row input[type='text'] {
+      margin-bottom: 0;
+      background: #fff;
+    }
+    
+    /* Alternatives list */
+    .alternatives-list {
+      list-style: none;
+      padding: 0;
+      margin: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .alt-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #f8fafc;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    
+    .alt-row input[type='text'] {
+      background: #fff;
+      margin-bottom: 0;
+    }
+    
+    /* Buttons */
+    .btn {
+      border: none;
+      padding: 0.5rem 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.875rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    
+    .btn-primary { background: #2563eb; color: #ffffff; }
+    .btn-primary:hover { background: #1d4ed8; }
+    
+    .btn-secondary { background: #e2e8f0; color: #1e293b; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    
+    .btn-sub { background: #e0f2fe; color: #0369a1; padding: 0.4rem 0.65rem; font-size: 0.8rem; }
+    .btn-sub:hover { background: #bae6fd; }
+    
+    .btn-delete { background: #fee2e2; color: #b91c1c; padding: 0.4rem 0.65rem; font-size: 0.8rem; }
+    .btn-delete:hover { background: #fecaca; }
+    
+    .btn-outline { background: transparent; border: 1px solid #d1d5db; color: #374151; }
+    .btn-outline:hover { background: #f3f4f6; }
+    
+    .tree-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    
+    .tree-header h3 { margin: 0; font-size: 1.15rem; }
+    
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+
+  <script>
+    /* ---------- Criteria tree (unchanged) ---------- */
+    function createNodeElement(placeholderText = 'Criterion Name') {
+      const li = document.createElement('li')
+      li.className = 'node-item'
+    
+      const row = document.createElement('div')
+      row.className = 'node-row'
+    
+      const input = document.createElement('input')
+      input.type = 'text'
+      input.placeholder = placeholderText
+      input.required = true
+      input.className = 'criterion-input'
+    
+      const btnAddSub = document.createElement('button')
+      btnAddSub.type = 'button'
+      btnAddSub.className = 'btn btn-sub'
+      btnAddSub.innerText = '+ Sub-criterion'
+      btnAddSub.onclick = () => addNode(li)
+    
+      const btnDelete = document.createElement('button')
+      btnDelete.type = 'button'
+      btnDelete.className = 'btn btn-delete'
+      btnDelete.innerText = '✕'
+      btnDelete.title = 'Remove'
+      btnDelete.onclick = () => li.remove()
+    
+      row.appendChild(input)
+      row.appendChild(btnAddSub)
+      row.appendChild(btnDelete)
+      li.appendChild(row)
+    
+      return li
+    }
+    
+    function addNode(parentLi = null) {
+      if (!parentLi) {
+        document.getElementById('criteriaRoot').appendChild(createNodeElement('Main Criterion'))
+      } else {
+        let childContainer = parentLi.querySelector(':scope > ul')
+        if (!childContainer) {
+          childContainer = document.createElement('ul')
+          parentLi.appendChild(childContainer)
+        }
+        childContainer.appendChild(createNodeElement('Sub-criterion'))
+      }
+    }
+    
+    let index = 0;
+    function parseTree(parentElement) {
+      const result = []
+      const directChildren = parentElement.querySelectorAll(':scope > li.node-item')
+    
+      
+      directChildren.forEach((li) => {
+        const input = li.querySelector(':scope > .node-row > .criterion-input')
+        const childContainer = li.querySelector(':scope > ul')
+        result.push({
+          name: input ? input.value.trim() : '',
+          children: childContainer ? parseTree(childContainer) : [],
+          index: index,
+        })
+        index++;
+      })
+    
+      return result
+    }
+
+    /* ---------- Alternatives ---------- */
+    function createAlternativeRow(placeholderText = 'Alternative name') {
+      const li = document.createElement('li')
+      li.className = 'alt-row'
+    
+      const input = document.createElement('input')
+      input.type = 'text'
+      input.placeholder = placeholderText
+      input.className = 'alternative-input'
+    
+      const btnDelete = document.createElement('button')
+      btnDelete.type = 'button'
+      btnDelete.className = 'btn btn-delete'
+      btnDelete.innerText = '✕'
+      btnDelete.title = 'Remove'
+      btnDelete.onclick = () => li.remove()
+    
+      li.appendChild(input)
+      li.appendChild(btnDelete)
+      return li
+    }
+    
+    function addAlternative() {
+      document.getElementById('alternativesRoot').appendChild(createAlternativeRow())
+    }
+    
+    function parseAlternatives() {
+      const inputs = document.querySelectorAll('#alternativesRoot .alternative-input')
+      const seen = new Set()
+      const out = []
+      inputs.forEach((input) => {
+        const v = input.value.trim()
+        if (v && !seen.has(v)) {
+          seen.add(v)
+          out.push(v)
+        }
+      })
+      return out
+    }
+
+    /* ---------- Submit ---------- */
+    document.getElementById('ahpForm').addEventListener('submit', function (e) {
+      const root = document.getElementById('criteriaRoot')
+      const treeData = parseTree(root)
+    
+      if (treeData.length === 0) {
+        e.preventDefault()
+        alert('Please add at least one criterion before proceeding.')
+        return
+      }
+    
+      document.getElementById('criteriaTreeInput').value = JSON.stringify(treeData)
+      document.getElementById('alternativesInput').value = JSON.stringify(parseAlternatives())
+    })
+
+    /* ---------- Defaults ---------- */
+    document.addEventListener('DOMContentLoaded', () => {
+      // 3 default criteria
+      addNode()
+      addNode()
+      addNode()
+      // 2 default alternatives
+      addAlternative()
+      addAlternative()
+    })
+  </script>
+{% endblock %}

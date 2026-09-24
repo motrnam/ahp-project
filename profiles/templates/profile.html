@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Profile — {{ profile_user.username }}
+{% endblock %}
+
+{% block content %}
+  <style>
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 1.5rem;
+    }
+    
+    .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--nav-accent, #3b82f6);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    
+    .profile-header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    
+    .profile-header .meta {
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background: var(--content-bg, #f9fafb);
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+    
+    .stat-card .num {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--nav-accent, #3b82f6);
+      display: block;
+    }
+    
+    .stat-card .label {
+      font-size: 0.85rem;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    
+    .section {
+      margin-bottom: 2rem;
+    }
+    
+    .section h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    
+    th,
+    td {
+      text-align: left;
+      padding: 0.6rem 0.5rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    th {
+      color: #6b7280;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    
+    .badge.DRAFT {
+      background: #f3f4f6;
+      color: #374151;
+    }
+    .badge.IN_PROGRESS {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .badge.FINISHED {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .badge.STOPPED {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .empty {
+      color: #9ca3af;
+      font-style: italic;
+      padding: 0.5rem 0;
+    }
+    
+    a.link {
+      color: var(--nav-accent, #3b82f6);
+      text-decoration: none;
+    }
+    a.link:hover {
+      text-decoration: underline;
+    }
+  </style>
+
+  <div class="profile-header">
+    <div class="avatar">{{ profile_user.username|first|upper }}</div>
+    <div>
+      <h1>{{ profile_user.username }}</h1>
+      <div class="meta">
+        {{ profile_user.email|default:'no email' }}
+        {% if profile_user.date_joined %}
+          &middot; joined {{ profile_user.date_joined|date:'M j, Y' }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <span class="num">{{ counts.questionnaires }}</span>
+      <span class="label">Questionnaires</span>
+    </div>
+    <div class="stat-card">
+      <span class="num">{{ counts.answers }}</span>
+      <span class="label">Answers</span>
+    </div>
+    <div class="stat-card">
+      <span class="num">{{ counts.drafts }}</span>
+      <span class="label">Drafts</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>My Questionnaires</h2>
+    {% if my_questionnaires %}
+      <table>
+        <thead>
+          <tr>
+            <th>Goal</th>
+            <th>Status</th>
+            <th>Answer&nbsp;by</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for q in my_questionnaires %}
+            <tr>
+              <td>{{ q.goal }}</td>
+              <td>
+                <span class="badge {{ q.status }}">{{ q.get_status_display }}</span>
+              </td>
+              <td>{{ q.get_answer_by_display }}</td>
+              <td>{{ q.created_at|date:'M j, Y' }}</td>
+              <td>
+                <a class="link" href="{% url 'questionnaire_detail' q.pk %}">view</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">You haven't created any questionnaires yet.</p>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <h2>Drafts</h2>
+    {% if my_drafts %}
+      <table>
+        <thead>
+          <tr>
+            <th>Questionnaire</th>
+            <th>Progress</th>
+            <th>Updated</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in my_drafts %}
+            <tr>
+              <td>{{ d.questionnaire.goal }}</td>
+              <td>{{ d.answers|length }} answer{{ d.answers|length|pluralize }}</td>
+              <td>{{ d.updated_at|date:'M j, Y H:i' }}</td>
+              <td>
+                <a class="link" href="{% url 'handle' d.questionnaire.pk %}">continue</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">No drafts saved.</p>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <h2>My Answers</h2>
+    {% if my_answers %}
+      <table>
+        <thead>
+          <tr>
+            <th>Questionnaire</th>
+            <th>Owner</th>
+            <th>Submitted</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in my_answers %}
+            <tr>
+              <td>{{ a.questionnaire.goal }}</td>
+              <td>{{ a.questionnaire.user.username }}</td>
+              <td>#{{ a.pk }}</td>
+              <td>
+                <a class="link" href="{% url 'questionnaire_detail' a.questionnaire.pk %}">view</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">You haven't submitted any answers yet.</p>
+    {% endif %}
+  </div>
+{% endblock %}

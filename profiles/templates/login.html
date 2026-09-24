@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#f6f9fc,#e6f0f5);padding:1.5rem}
+        .signup-container{background:rgba(255,255,255,.85);backdrop-filter:blur(4px);border-radius:2.5rem;box-shadow:0 20px 50px rgba(0,20,30,.12);padding:2.8rem 2.5rem;width:100%;max-width:440px;border:1px solid rgba(255,255,255,.5);transition:.25s ease}
+        .signup-container:hover{transform:translateY(-4px);box-shadow:0 32px 64px rgba(0,40,60,.16)}
+        h2{font-size:2rem;font-weight:600;color:#0b2b3d;margin-bottom:.4rem;display:flex;gap:.3rem}
+        h2::after{content:"✦";font-size:1.6rem;color:#2a7f8f;margin-left:auto;opacity:.6}
+        .messages{margin:1.2rem 0 1.5rem;display:flex;flex-direction:column;gap:.6rem}
+        .alert{padding:.8rem 1rem;border-radius:1.2rem;font-size:.9rem;font-weight:500;background:rgba(255,255,255,.6);border-left:5px solid transparent}
+        .alert-error{background:#fff0ee;border-left-color:#c73b3b;color:#a12828}
+        .alert-success{background:#e6f7ed;border-left-color:#1f8b5a;color:#136a43}
+        .alert-warning{background:#fff8e0;border-left-color:#b68b2c;color:#7d621d}
+        .alert-info{background:#e3f2fd;border-left-color:#1f6f8b;color:#13506a}
+        .form-group{margin-bottom:1.5rem}
+        .form-group label{display:block;font-size:.85rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:#1d4a5c;margin-bottom:.4rem}
+        .form-group input{width:100%;padding:.9rem 1.2rem;font-size:1rem;font-family:inherit;background:rgba(255,255,255,.7);border:1.5px solid #d7e3ea;border-radius:2rem;transition:.2s;color:#0b2b3d;outline:none}
+        .form-group input:focus{border-color:#2f8b9e;background:rgba(255,255,255,.95);box-shadow:0 0 0 4px rgba(47,139,158,.15)}
+        .btn-signup{width:100%;padding:1rem;background:#1f5f70;border:none;border-radius:3rem;font-size:1.1rem;font-weight:600;color:#fff;cursor:pointer;transition:.25s;box-shadow:0 6px 14px rgba(26,87,104,.25);margin-top:.6rem;font-family:inherit}
+        .btn-signup:hover{background:#134a5a;transform:scale(1.01);box-shadow:0 10px 24px rgba(19,74,90,.3)}
+        .btn-signup:active{transform:scale(.97);background:#0d3b48}
+        .login-link{margin-top:2rem;text-align:center;font-size:.95rem;color:#1f4c5e;border-top:1px solid rgba(0,0,0,.04);padding-top:1.5rem}
+        .login-link a{color:#1f6f82;font-weight:600;text-decoration:none;border-bottom:2px solid transparent;transition:.2s;margin-left:.2rem}
+        .login-link a:hover{color:#0d4b5c;border-bottom-color:#1f6f82}
+        @media(max-width:460px){.signup-container{padding:2rem 1.5rem;border-radius:2rem}h2{font-size:1.7rem}.btn-signup{font-size:1rem}}
+        .signup-container{position:relative;z-index:1}
+        .signup-container::before{content:'';position:absolute;top:-6px;left:-6px;right:-6px;bottom:-6px;border-radius:2.8rem;background:linear-gradient(135deg,rgba(47,139,158,.08),rgba(255,255,255,.2));z-index:-1;filter:blur(2px)}
+        .messages:empty{display:none}
+    </style>
+</head>
+<body>
+<div class="signup-container">
+    <h2>Log In</h2>
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="username" required>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" required>
+        </div>
+        <button type="submit" class="btn-signup">Log In</button>
+    </form>
+    <div class="login-link">
+        Don't have an account? <a href="{% url 'signup' %}">Sign Up</a>
+    </div>
+</div>
+</body>
+</html>

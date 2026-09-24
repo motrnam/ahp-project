@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Application{% endblock %}</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --nav-bg: #1f2937;
+            --nav-fg: #e5e7eb;
+            --nav-fg-hover: #ffffff;
+            --nav-accent: #3b82f6;
+            --content-bg: #f9fafb;
+            --text: #111827;
+            --radius: 6px;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            background: var(--content-bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--nav-bg);
+            color: var(--nav-fg);
+            box-shadow: var(--shadow);
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--nav-fg);
+            text-decoration: none;
+            padding: 0.5rem 0.85rem;
+            border-radius: var(--radius);
+            font-weight: 500;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        nav a:hover,
+        nav a:focus-visible {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--nav-fg-hover);
+            outline: none;
+        }
+
+        nav a:focus-visible {
+            box-shadow: 0 0 0 2px var(--nav-accent);
+        }
+
+        .nav-spacer { flex: 1; }
+
+        .logout-form {
+            display: inline;
+            margin: 0;
+        }
+
+        .logout-form button {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: var(--nav-fg);
+            padding: 0.45rem 0.85rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font: inherit;
+            font-weight: 500;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .logout-form button:hover,
+        .logout-form button:focus-visible {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: var(--nav-fg-hover);
+            outline: none;
+        }
+
+        .content {
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        @media (max-width: 600px) {
+            nav { padding: 0.75rem 1rem; }
+            .content { margin: 1rem; padding: 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav aria-label="Main navigation">
+        <a href="{% url 'index' %}">Home</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'create-ahp' %}">Make Something</a>
+            <a href="{% url 'profile' %}">Profile</a>
+            <span class="nav-spacer"></span>
+            <form method="post" action="{% url 'account_logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit">Logout</button>
+            </form>
+        {% else %}
+            <span class="nav-spacer"></span>
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'signup' %}">Register</a>
+        {% endif %}
+    </nav>
+
+    <main class="content">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+</body>
+</html>

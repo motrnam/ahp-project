@@ -1,0 +1,35 @@
+{# templates/partials/ahp_tree.html #}
+<ul class="ahp-tree">
+    <li>
+        <span class="ahp-node-name">{{ node.name }}</span>
+        {% if node.local_weights %}
+            <span class="ahp-node-cr">
+                CR = {{ node.consistency_ratio|floatformat:3 }}
+            </span>
+        {% endif %}
+
+        {% if node.criteria %}
+            <ul>
+                {% for name, w in node.local_weights.items %}
+                    <li>
+                        <strong>{{ name }}</strong>
+                        — local {{ w|floatformat:4 }},
+                        global {{ w|floatformat:4 }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if node.alternative_weights %}
+            <ul class="ahp-alts">
+                {% for alt, w in node.alternative_weights.items %}
+                    <li>{{ alt }} — {{ w|floatformat:4 }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% for child in node.children %}
+            {% include "partials/ahp_tree.html" with node=child %}
+        {% endfor %}
+    </li>
+</ul>
