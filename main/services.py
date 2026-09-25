@@ -60,7 +60,7 @@ def extract_ahpy_model(post_data, questionnaire):
                         val = parse_ahp_value(val_raw)
                         alt_dict[(alternatives[i], alternatives[j])] = val
                         node_model.alternatives = alt_dict
-                        # node_model._compute_alternative_weights() # to be fixed later
+                        node_model._compute_alternative_weights() # to be fixed later
             if len(children) >= 2:
                 child_model = walk(children, n.get("name"))
                 node_model.add_child(child_model)

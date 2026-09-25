@@ -59,8 +59,13 @@ def profile(request: HttpRequest) -> HttpResponse:
         Answer.objects.filter(user=user).select_related("questionnaire").order_by("-id")
     )
 
-    # Drafts belonging to this user
-    my_drafts = user.drafts.select_related("questionnaire").order_by("-updated_at")
+    answered_questionnaire_ids = my_answers.values_list("questionnaire_id", flat=True)
+
+    my_drafts = (
+        user.drafts.select_related("questionnaire")
+        .exclude(questionnaire_id__in=answered_questionnaire_ids)
+        .order_by("-updated_at")
+    )
 
     context = {
         "profile_user": user,

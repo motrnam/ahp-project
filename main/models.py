@@ -65,6 +65,7 @@ class Draft(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_editable = models.BooleanField(default=True)
 
     class Meta:
         unique_together = ("questionnaire", "user")

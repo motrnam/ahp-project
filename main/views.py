@@ -16,6 +16,7 @@ from .services import (
 def index(request: HttpRequest) -> HttpResponse:
     return render(request, "home.html")
 
+
 def under_construction(request: HttpRequest):
     return render(request, "under_construction.html")
 
@@ -49,14 +50,17 @@ def questionnaire_detail(request: HttpRequest, pk):
         return redirect("/")
 
     if (
-        questionnaire.AnswerBy.LOGIN
-        and request.user.is_authenticated
+        request.user.is_authenticated
         and Answer.objects.filter(
             user=request.user, questionnaire=questionnaire
         ).exists()
     ):
         messages.error(request, "Already answered")
-        return render(request, "under_construction.html")
+        return render(
+            request,
+            "already_answered.html",
+            {"questionnaire": questionnaire},
+        )
 
     return render(request, "questionnaire_form.html", context)
 
