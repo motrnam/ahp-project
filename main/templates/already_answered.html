@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Already Answered{% endblock %}
+
+{% block content %}
+<style>
+    .already-answered {
+        text-align: center;
+        padding: 3rem 1rem;
+        max-width: 520px;
+        margin: 0 auto;
+    }
+
+    .already-answered__icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .already-answered__icon svg {
+        width: 32px;
+        height: 32px;
+    }
+
+    .already-answered__title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0 0 0.75rem;
+        color: var(--text);
+    }
+
+    .already-answered__text {
+        color: #6b7280;
+        margin: 0 0 2rem;
+        font-size: 1rem;
+    }
+
+    .already-answered__actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 0.6rem 1.25rem;
+        border-radius: var(--radius);
+        font-weight: 500;
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition: background-color 0.15s ease, border-color 0.15s ease;
+        cursor: pointer;
+    }
+
+    .btn--primary {
+        background: var(--nav-accent);
+        color: #fff;
+        border: 1px solid var(--nav-accent);
+    }
+
+    .btn--primary:hover,
+    .btn--primary:focus-visible {
+        background: #2563eb;
+        border-color: #2563eb;
+        outline: none;
+    }
+
+    .btn--secondary {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid #d1d5db;
+    }
+
+    .btn--secondary:hover,
+    .btn--secondary:focus-visible {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+        outline: none;
+    }
+
+    .btn:focus-visible {
+        box-shadow: 0 0 0 2px var(--nav-accent);
+    }
+</style>
+
+<div class="already-answered">
+    <div class="already-answered__icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+    </div>
+
+    <h1 class="already-answered__title">You've already answered this questionnaire</h1>
+
+    <p class="already-answered__text">
+        You have already submitted your answers for
+        <strong>{{ questionnaire.title }}</strong>.
+        You can view your results or head back to your dashboard.
+    </p>
+
+    <div class="already-answered__actions">
+        <a href="{% url 'dashboard' %}" class="btn btn--primary">Go to Dashboard</a>
+        <a href="{% url 'index' %}" class="btn btn--secondary">Back to Home</a>
+    </div>
+</div>
+{% endblock %}
